@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Codiguinho — MVP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mint: "#6EF7C8",
+            neon: "#A855F7",
+            panel: "#111318",
+            panel2: "#171A21"
+          }
+        }
+      }
+    }
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #090A0F; color: #E7EAF0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    textarea, input, select { outline: none; }
+    textarea:focus, input:focus, select:focus { border-color: #6EF7C8 !important; box-shadow: 0 0 0 3px rgba(110,247,200,.08); }
+    .grid-bg {
+      background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .glow { box-shadow: 0 0 35px rgba(168,85,247,.12); }
+    .scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+    .scrollbar::-webkit-scrollbar-thumb { background: #303542; border-radius: 99px; }
+    .code-font { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const {useState} = React;
+
+const challenges = [
+  {
+    id: 1, title: "Criar a classe Usuario", time: "5 min", level: "Fácil",
+    desc: "Crie a classe Usuario com nome e email. Depois, crie um construtor para receber esses valores.",
+    objective: "Praticar classes e construtores.",
+    starter:
+`public class Usuario {
+    private String nome;
+    private String email;
+
+    // Crie o construtor aqui
+}`
+  },
+  {
+    id: 2, title: "Validar o e-mail", time: "5 min", level: "Fácil",
+    desc: "Adicione um método que retorne true quando o e-mail possuir '@' e false caso contrário.",
+    objective: "Praticar métodos e condicionais.",
+    starter:
+`public boolean emailValido() {
+    // Implemente a validação
+    return false;
+}`
+  },
+  {
+    id: 3, title: "Testar o usuário", time: "10 min", level: "Médio",
+    desc: "Instancie um usuário e escreva um teste simples para verificar se o e-mail informado é válido.",
+    objective: "Conectar código e testes automatizados.",
+    starter:
+`@Test
+void deveValidarEmail() {
+    Usuario usuario = new Usuario(
+        "Ana", "ana@email.com"
+    );
+
+    // Faça sua verificação aqui
+}`
+  }
+];
+
+function App() {
+  const [screen, setScreen] = useState("home");
+  const [language, setLanguage] = useState("Java");
+  const [minutes, setMinutes] = useState("10");
+  const [exercise, setExercise] = useState("");
+  const [selected, setSelected] = useState(0);
+  const [code, setCode] = useState(challenges[0].starter);
+  const [output, setOutput] = useState("");
+  const [completed, setCompleted] = useState([]);
+
+  function startSlicing() {
+    if (!exercise.trim()) {
+      setExercise("Criar uma classe Usuario em Java com nome e e-mail, validar o e-mail e criar testes unitários.");
+    }
+    setScreen("slice");
+  }
+
+  function openChallenge(i) {
+    setSelected(i);
+    setCode(challenges[i].starter);
+    setOutput("");
+    setScreen("editor");
+  }
+
+  function runCode() {
+    setOutput("✓ Código executado!\n\nNenhum erro encontrado.\n\nTempo de execução: 0.18s");
+  }
+
+  function finishChallenge() {
+    if (!completed.includes(selected)) setCompleted([...completed, selected]);
+    if (selected < challenges.length - 1) {
+      const next = selected + 1;
+      setSelected(next);
+      setCode(challenges[next].starter);
+      setOutput("");
+    } else {
+      setScreen("done");
+    }
+  }
+
+  const Nav = () => (
+    <header className="h-16 border-b border-white/10 bg-[#0C0D12]/90 backdrop-blur flex items-center justify-between px-5 md:px-8 sticky top-0 z-20">
+      <button onClick={() => setScreen("home")} className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-mint to-neon flex items-center justify-center text-black font-black">&lt;/&gt;</div>
+        <div className="font-bold text-lg tracking-tight">codiguinho<span className="text-mint">.</span></div>
+      </button>
+      <div className="hidden md:flex items-center gap-6 text-sm text-slate-400">
+        <button onClick={() => setScreen("home")} className={screen==="home" ? "text-white" : "hover:text-white"}>Início</button>
+        <button onClick={() => setScreen("slice")} className={screen==="slice" || screen==="editor" ? "text-white" : "hover:text-white"}>Meu desafio</button>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-slate-400">
+        <span className="w-2 h-2 rounded-full bg-mint shadow-[0_0_10px_#6EF7C8]"></span>
+        12 min hoje
+      </div>
+    </header>
+  );
+
+  const Home = () => (
+    <main className="min-h-[calc(100vh-64px)] grid-bg">
+      <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20">
+        <div className="max-w-3xl">
+          <div className="inline-flex items-center gap-2 rounded-full border border-mint/20 bg-mint/5 px-3 py-1.5 text-xs text-mint mb-6">
+            <span>✦</span> Microlearning para quem vive na correria
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-[1.05]">
+            Sua tarefa da faculdade.<br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-mint to-neon">Fatiada. Codada. Feita.</span>
+          </h1>
+          <p className="mt-6 text-slate-400 text-base md:text-lg max-w-2xl leading-relaxed">
+            Cole aquele exercício gigante e transforme a tarefa em pequenos desafios de 5 a 10 minutos. Sem enrolação e direto para o código.
+          </p>
+        </div>
+
+        <div className="mt-10 grid lg:grid-cols-[1.5fr_.7fr] gap-5">
+          <div className="rounded-2xl border border-white/10 bg-panel p-5 md:p-6 glow">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-semibold">O que você precisa fazer?</label>
+              <span className="text-xs text-slate-500">Cole o enunciado</span>
+            </div>
+            <textarea
+              value={exercise}
+              onChange={e=>setExercise(e.target.value)}
+              placeholder="Ex.: Crie um sistema em Java para cadastro de alunos..."
+              className="w-full h-44 resize-none rounded-xl border border-white/10 bg-[#0B0D12] p-4 text-sm text-slate-200 placeholder:text-slate-600"
+            />
+            <div className="mt-4 grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-slate-500 block mb-2">Linguagem</label>
+                <select value={language} onChange={e=>setLanguage(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-[#0B0D12] p-3 text-sm">
+                  <option>Java</option><option>Python</option><option>JavaScript</option><option>C#</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 block mb-2">Quanto tempo tenho?</label>
+                <select value={minutes} onChange={e=>setMinutes(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-[#0B0D12] p-3 text-sm">
+                  <option>5</option><option>10</option><option>15</option><option>20</option>
+                </select>
+              </div>
+            </div>
+            <button onClick={startSlicing}
+              className="mt-5 w-full rounded-xl bg-mint text-[#07100D] font-bold py-3.5 hover:brightness-110 transition">
+              Fatiar meu exercício →
+            </button>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-panel p-6">
+            <p className="text-xs uppercase tracking-widest text-slate-500">Seu progresso</p>
+            <div className="mt-5 text-4xl font-black">3<span className="text-slate-600">/</span>5</div>
+            <p className="text-sm text-slate-400 mt-1">microdesafios concluídos</p>
+            <div className="mt-6 h-2 rounded-full bg-white/5 overflow-hidden">
+              <div className="h-full w-[60%] bg-gradient-to-r from-mint to-neon rounded-full"></div>
+            </div>
+            <div className="mt-7 space-y-3 text-sm">
+              <div className="flex justify-between"><span className="text-slate-400">Sequência</span><b>🔥 4 dias</b></div>
+              <div className="flex justify-between"><span className="text-slate-400">Tempo praticado</span><b>1h 35min</b></div>
+              <div className="flex justify-between"><span className="text-slate-400">Desafios</span><b>18</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+
+  const Slice = () => (
+    <main className="min-h-[calc(100vh-64px)] bg-[#0B0C11]">
+      <section className="max-w-5xl mx-auto px-5 md:px-8 py-10">
+        <button onClick={()=>setScreen("home")} className="text-sm text-slate-500 hover:text-white mb-7">← Voltar</button>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-mint font-bold">Seu exercício foi fatiado</p>
+            <h2 className="text-3xl md:text-4xl font-black mt-2">Cadastro de usuários em Java</h2>
+            <p className="text-slate-400 mt-3 max-w-2xl">Transformamos uma tarefa de aproximadamente 30 minutos em {challenges.length} passos curtos e executáveis.</p>
+          </div>
+          <div className="text-sm text-slate-400 rounded-xl border border-white/10 px-4 py-3 bg-panel">
+            ⏱ Total estimado <b className="text-white">20 min</b>
+          </div>
+        </div>
+
+        <div className="mt-8 space-y-3">
+          {challenges.map((c,i)=>(
+            <button key={c.id} onClick={()=>openChallenge(i)}
+              className="w-full text-left rounded-2xl border border-white/10 bg-panel hover:bg-panel2 hover:border-mint/30 p-5 transition group">
+              <div className="flex gap-4 items-start">
+                <div className={"shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black " +
+                  (completed.includes(i) ? "bg-mint text-black" : "bg-white/5 text-slate-300")}>
+                  {completed.includes(i) ? "✓" : String(i+1).padStart(2,"0")}
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <h3 className="font-bold text-base group-hover:text-mint transition">{c.title}</h3>
+                    <span className="text-[10px] px-2 py-1 rounded-full bg-mint/10 text-mint">{c.level}</span>
+                    <span className="text-xs text-slate-500">⏱ {c.time}</span>
+                  </div>
+                  <p className="text-sm text-slate-400 mt-2 leading-relaxed">{c.desc}</p>
+                </div>
+                <span className="text-slate-600 group-hover:text-mint text-xl">→</span>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-7 rounded-2xl border border-neon/20 bg-neon/5 p-5">
+          <p className="text-sm font-semibold">💡 Por que desse fatiamento?</p>
+          <p className="text-sm text-slate-400 mt-1">Cada etapa trabalha uma habilidade específica. Você pratica, executa e recebe feedback antes de avançar.</p>
+        </div>
+      </section>
+    </main>
+  );
+
+  const Editor = () => {
+    const c = challenges[selected];
+    return (
+      <main className="min-h-[calc(100vh-64px)] bg-[#08090D]">
+        <div className="max-w-[1400px] mx-auto p-3 md:p-5">
+          <div className="flex flex-col lg:flex-row gap-3 h-[calc(100vh-104px)] min-h-[650px]">
+            <aside className="lg:w-[330px] rounded-2xl border border-white/10 bg-panel overflow-hidden flex flex-col">
+              <div className="p-5 border-b border-white/10">
+                <button onClick={()=>setScreen("slice")} className="text-xs text-slate-500 hover:text-white">← Todos os desafios</button>
+                <div className="mt-5 flex items-center gap-2">
+                  <span className="text-xs px-2 py-1 rounded-md bg-mint/10 text-mint">DESAFIO {selected+1}/{challenges.length}</span>
+                  <span className="text-xs text-slate-500">⏱ {c.time}</span>
+                </div>
+                <h2 className="text-xl font-bold mt-3">{c.title}</h2>
+              </div>
+              <div className="p-5 overflow-auto scrollbar">
+                <p className="text-xs uppercase tracking-widest text-slate-500 font-bold">Missão</p>
+                <p className="text-sm text-slate-300 leading-relaxed mt-3">{c.desc}</p>
+                <div className="mt-6 rounded-xl bg-[#0B0D12] border border-white/5 p-4">
+                  <p className="text-xs text-slate-500">OBJETIVO</p>
+                  <p className="text-sm mt-2 text-mint">{c.objective}</p>
+                </div>
+                <div className="mt-6">
+                  <p className="text-xs uppercase tracking-widest text-slate-500 font-bold">Dica</p>
+                  <p className="text-sm text-slate-400 mt-2">Tente resolver sozinho primeiro. Se travar, pense em uma solução simples antes de buscar algo mais avançado.</p>
+                </div>
+              </div>
+            </aside>
+
+            <section className="flex-1 rounded-2xl border border-white/10 bg-[#0D0F14] overflow-hidden flex flex-col">
+              <div className="h-12 border-b border-white/10 bg-panel flex items-center justify-between px-4">
+                <div className="flex items-center gap-3 text-xs text-slate-500">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56]"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#27C93F]"></span>
+                  <span className="ml-2">Main.java</span>
+                </div>
+                <span className="text-xs text-slate-500">{language}</span>
+              </div>
+
+              <div className="flex-1 flex flex-col min-h-0">
+                <div className="flex-1 relative min-h-0">
+                  <textarea value={code} onChange={e=>setCode(e.target.value)}
+                    spellCheck="false"
+                    className="absolute inset-0 w-full h-full resize-none bg-[#0D0F14] p-5 text-sm leading-6 text-slate-200 code-font scrollbar border-0"
+                  />
+                </div>
+                <div className="h-44 border-t border-white/10 bg-[#090A0E] flex flex-col">
+                  <div className="px-4 py-2 border-b border-white/5 flex justify-between">
+                    <span className="text-xs font-semibold text-slate-400">CONSOLE</span>
+                    <button onClick={()=>setOutput("")} className="text-xs text-slate-600 hover:text-slate-300">limpar</button>
+                  </div>
+                  <pre className="p-4 text-xs code-font whitespace-pre-wrap text-slate-400 overflow-auto scrollbar">{output || "Execute seu código para ver o resultado aqui..."}</pre>
+                </div>
+              </div>
+
+              <div className="h-16 border-t border-white/10 bg-panel px-4 flex items-center justify-between gap-3">
+                <span className="hidden sm:block text-xs text-slate-500">Salvo automaticamente</span>
+                <div className="flex gap-2 ml-auto">
+                  <button onClick={runCode} className="px-4 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-sm font-semibold">▶ Executar</button>
+                  <button onClick={finishChallenge} className="px-4 py-2.5 rounded-xl bg-mint text-black text-sm font-bold hover:brightness-110">
+                    {selected === challenges.length-1 ? "Concluir ✓" : "Concluir e avançar →"}
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    );
+  };
+
+  const Done = () => (
+    <main className="min-h-[calc(100vh-64px)] grid-bg flex items-center justify-center px-5">
+      <div className="max-w-xl text-center">
+        <div className="mx-auto w-20 h-20 rounded-3xl bg-mint/10 border border-mint/20 flex items-center justify-center text-4xl">🎉</div>
+        <p className="text-mint text-xs uppercase tracking-widest font-bold mt-7">Missão concluída</p>
+        <h1 className="text-4xl font-black mt-2">Mandou bem.</h1>
+        <p className="text-slate-400 mt-4 leading-relaxed">Você terminou todos os microdesafios. Mais uma tarefa da faculdade transformada em prática real.</p>
+        <button onClick={()=>setScreen("home")} className="mt-7 px-6 py-3 rounded-xl bg-mint text-black font-bold">Voltar ao início</button>
+      </div>
+    </main>
+  );
+
+  return <>
+    <Nav />
+    {screen==="home" && <Home/>}
+    {screen==="slice" && <Slice/>}
+    {screen==="editor" && <Editor/>}
+    {screen==="done" && <Done/>}
+  </>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
